@@ -106,13 +106,21 @@ class StaticECRF:
         return x.clamp(0.0, 1.0)
 
     @staticmethod
-    def _gaussian_blur(x: torch.Tensor, kernel_size: int = 5, sigma: float = 1.0) -> torch.Tensor:
-        coords = torch.arange(kernel_size, dtype=x.dtype, device=x.device) - kernel_size // 2
-        g = torch.exp(-(coords ** 2) / (2 * sigma ** 2))
-        g = (g / g.sum()).view(1, 1, -1)
-        kernel_x = g.view(1, 1, 1, kernel_size)
-        kernel_y = g.view(1, 1, kernel_size, 1)
-        pad = kernel_size // 2
-        x = F.conv2d(x, kernel_x, padding=(0, pad))
-        x = F.conv2d(x, kernel_y, padding=(pad, 0))
-        return x
+    def _gaussian_blur(x, kernel_size=5, sigma=1.0):
+        channels = x.shape[1]
+        coords = torch.arange(
+            kernel_size,
+            device=x.device,
+            dtype=x.dtype
+            ) - (kernel_size - 1) / 2
+        gaussian_1d = torch.exp(-(coords ** 2) / (2 * sigma ** 2))
+        gaussian_1d = gaussian_1d / gaussian_1d.sum()
+        kernel_2d = gaussian_1d[:, None] @ gaussian_1d[None, :]
+        kernel_2d = kernel_2d.expand(channels, 1, kernel_size, kernel_size)
+        padding = kernel_size // 2
+        return F.conv2d(
+            x,
+            kernel_2d,
+            padding=padding,
+            groups=channels
+    )

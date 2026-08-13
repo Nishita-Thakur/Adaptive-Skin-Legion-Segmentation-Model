@@ -50,7 +50,9 @@ class WBDMECRFAdaptive(nn.Module):
         # ---- BDM block ----
         bdm_cfg = cfg["bdm"]
         unet_cfg = dict(bdm_cfg["unet"])
-        unet_cfg["input_resolution"] = image_size // 2  # DWT halves H,W
+        unet_cfg["input_resolution"] = image_size // 2
+        unet_cfg["in_channels"] = channels
+        unet_cfg["out_channels"] = 1
         boundary_cfg = bdm_cfg.get("boundary_head", {"enabled": False})
         diffusion_cfg = cfg.get("_diffusion", {})
         self.bdm = BrownianBridgeDiffusion(
@@ -148,6 +150,10 @@ class WBDMECRFAdaptive(nn.Module):
     def predict(self, image: torch.Tensor, num_sample_steps: int = None):
         xT, _ = self.compute_dwt(image)
         pred_mask, boundary_logits = self.bdm.sample(xT, num_steps=num_sample_steps)
+        # BDM public API may return the same channel count as its input.
+# Segmentation masks must remain single-channel.
+        if pred_mask.shape[1] != 1:
+            pred_mask = pred_mask[:, :1]
         pred_mask = torch.nn.functional.interpolate(pred_mask, size=image.shape[-2:], mode="bilinear", align_corners=False)
         pred_mask = pred_mask.clamp(0.0, 1.0)
 

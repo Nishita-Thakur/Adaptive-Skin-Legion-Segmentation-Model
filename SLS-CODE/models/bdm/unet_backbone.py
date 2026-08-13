@@ -77,7 +77,7 @@ class UNetBackbone(nn.Module):
     def __init__(
         self,
         in_channels: int = 3,
-        out_channels: int = None,
+        out_channels: int = 1,
         base_channels: int = 64,
         channel_mults=(1, 2, 4, 8),
         use_flash_attention: bool = True,
@@ -86,7 +86,6 @@ class UNetBackbone(nn.Module):
         num_heads: int = 4,
     ):
         super().__init__()
-        out_channels = out_channels or in_channels
         self.input_resolution = input_resolution
         time_emb_dim = base_channels * 4
 

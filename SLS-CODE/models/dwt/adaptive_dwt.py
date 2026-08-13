@@ -59,4 +59,5 @@ class AdaptiveDWT(nn.Module):
         if epoch >= warmup_epochs:
             return torch.tensor(0.0, device=aux["gate"].device)
         kl = self.gate.prior_kl_loss(aux["gate"])
+        kl = torch.clamp(kl, min=0.0)
         return weight * kl

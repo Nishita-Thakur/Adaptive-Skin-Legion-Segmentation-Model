@@ -16,7 +16,7 @@ import torch.nn as nn
 def _haar_filters(dtype, device):
     """Return the 4 Haar analysis filters (LL, LH, HL, HH), each 2x2,
     normalized so that a flat region maps to itself in LL."""
-    ll = torch.tensor([[1, 1], [1, 1]], dtype=dtype, device=device) * 0.5
+    ll = torch.tensor([[1, 1], [1, 1]], dtype=dtype, device=device) * 0.25
     lh = torch.tensor([[1, 1], [-1, -1]], dtype=dtype, device=device) * 0.5
     hl = torch.tensor([[1, -1], [1, -1]], dtype=dtype, device=device) * 0.5
     hh = torch.tensor([[1, -1], [-1, 1]], dtype=dtype, device=device) * 0.5
